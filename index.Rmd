@@ -10,6 +10,9 @@ Date: 26th February 2016
 
 Word-count: 1428  
 
+Link to this document on GiHub gh-pages: https://joerglandskron.github.io/predmachlearn/   
+Link to the GitHub-Repository for the Prediction Writeup Assignment: https://github.com/joerglandskron/predmachlearn
+
 ```{r ref.label="load libraries and default settings", warning=FALSE, message=FALSE, echo=FALSE}
 ```
 
