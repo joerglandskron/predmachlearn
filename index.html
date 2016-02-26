@@ -395,7 +395,7 @@ validationset &lt;- read.csv(&quot;pml-testing.csv&quot;, stringsAsFactors = FAL
 </div>
 <div id="show-first-rows-of-the-training-dataset" class="section level4">
 <h4>3) Show first rows of the training dataset</h4>
-<pre class="r"><code>kable(head(trainingset[1:7]))</code></pre>
+<pre class="r"><code>kable(head(trainingset[1:7]), format=&quot;pandoc&quot;)</code></pre>
 <p> </p>
 </div>
 <div id="show-necessary-accuracy" class="section level4">
@@ -407,7 +407,7 @@ for (i in 1:3) {
     accuracy[i] &lt;- round(predprob[i]^0.05,4)
 }
 
-kable(data.frame(predprob=predprob, accuracy=accuracy), row.names = FALSE, col.names = c(&quot;p (20 out of 20)&quot;, &quot;accuracy needed&quot;))</code></pre>
+kable(data.frame(predprob=predprob, accuracy=accuracy), row.names = FALSE, col.names = c(&quot;p (20 out of 20)&quot;, &quot;accuracy needed&quot;), format=&quot;pandoc&quot;)</code></pre>
 <p> </p>
 </div>
 <div id="delete-unnecessary-columns" class="section level4">
@@ -468,7 +468,7 @@ cmtest</code></pre>
 <pre class="r"><code>predvalidation &lt;- predict(fit,validationset)
 predanswers &lt;- rbind(data.frame(), as.character(predvalidation))
 names(predanswers) &lt;- 1:length(predvalidation)
-kable(predanswers)</code></pre>
+kable(predanswers, format=&quot;pandoc&quot;)</code></pre>
 </div>
 </div>
 </div>

@@ -246,7 +246,7 @@ validationset <- read.csv("pml-testing.csv", stringsAsFactors = FALSE, na.string
 ####3) Show first rows of the training dataset
 
 ```r
-kable(head(trainingset[1:7]))
+kable(head(trainingset[1:7]), format="pandoc")
 ```
 &nbsp;
 
@@ -260,7 +260,7 @@ for (i in 1:3) {
     accuracy[i] <- round(predprob[i]^0.05,4)
 }
 
-kable(data.frame(predprob=predprob, accuracy=accuracy), row.names = FALSE, col.names = c("p (20 out of 20)", "accuracy needed"))
+kable(data.frame(predprob=predprob, accuracy=accuracy), row.names = FALSE, col.names = c("p (20 out of 20)", "accuracy needed"), format="pandoc")
 ```
 &nbsp;
   
@@ -337,7 +337,7 @@ plot(fit$finalModel, main = "Class Error by amount of trees")
 predvalidation <- predict(fit,validationset)
 predanswers <- rbind(data.frame(), as.character(predvalidation))
 names(predanswers) <- 1:length(predvalidation)
-kable(predanswers)
+kable(predanswers, format="pandoc")
 ```
 
 [1]: http://groupware.les.inf.puc-rio.br/har "HAR website"
