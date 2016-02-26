@@ -1,8 +1,3 @@
----
-output: 
-  html_document: 
-    keep_md: yes
----
 #Predicting Human Activity Recognition (HAR)
 **Course-Project of Practical Machine Learning, part of Data Science Specialization (Johns Hopkins/Coursera)**   
 **(Prediction Assignment Writeup)**  
@@ -15,11 +10,9 @@ Word-count: 1428
 Link to this document on GiHub gh-pages: https://joerglandskron.github.io/predmachlearn/   
 Link to the GitHub-Repository for the Prediction Writeup Assignment: https://github.com/joerglandskron/predmachlearn
 
-```{r ref.label="load libraries and default settings", warning=FALSE, message=FALSE, echo=FALSE}
-```
 
-```{r load datasets, echo=FALSE, cache=TRUE}
-```
+
+
 
 ##Overview
 More and more enthusiasts take measurements about themselves regularly to improve their health using devices as Jawbone Up, Nike FuelBand and Fitbit. With these devices it is now possible to collect a large amount of data about personal activity relatively inexpensively. But people mostly only quantify how often and how long they perform activities and do not quantify how well they do them.  
@@ -43,36 +36,68 @@ Unfortunately there was no detailed codebook for the dataset available, so the f
 In discussion were the first seven variables, `X` (line number), `user_name`, `raw_timestamp_part_1`, `raw_timestamp_part_2`, `cvtd_timestamp`, `new_window` and `num_window` shown below:  
   
   
-```{r Show dataset, echo=FALSE}
-```
+
+  X  user_name    raw_timestamp_part_1   raw_timestamp_part_2  cvtd_timestamp     new_window    num_window
+---  ----------  ---------------------  ---------------------  -----------------  -----------  -----------
+  1  carlitos               1323084231                 788290  05/12/2011 11:23   no                    11
+  2  carlitos               1323084231                 808298  05/12/2011 11:23   no                    11
+  3  carlitos               1323084231                 820366  05/12/2011 11:23   no                    11
+  4  carlitos               1323084232                 120339  05/12/2011 11:23   no                    12
+  5  carlitos               1323084232                 196328  05/12/2011 11:23   no                    12
+  6  carlitos               1323084232                 304277  05/12/2011 11:23   no                    12
 
 Clearly not usable are the observation line number in column `X` and the `cvtd_timestamp` as it is not conceivable, that a date/timestamp in minutes could be used as predictor for a barbell lift where the movements are not measured in minutes but in much smaller time-frames. The `new_window`-variable consists only out of two different values (19216 x no and 406 x yes) which seems also not usable for precise measurements. As result it was also dropped.  
 Normally the variable `user_name` would also be dropped, because the prediction algorithm should be able to predict the measurements of any other person than the study participants as well. But since the goal is to predict the observations in the validation set, which also contains the variable `user_name`, it was kept in the training set. Also as the variables `raw_timestamp_part_1`, `raw_timestamp_part_2` and `num_window` are left in the trainig set, because there were a resonable amount of different values of each of the values in the training set (837 x raw_timestamp_part_1, 16783 x raw_timestamp_part_2 and 858 x num_window). The results of the model will show, if the variables should be kept or dropped later on in another try.  
   
 It also turns out, that in the dataset 100 variables were present with 19216 NA-values out of 19622 observations in total. So all of these variables were dropped as well. This results in 56 predictor variables in total.
   
-```{r Data cleaning, echo=FALSE, cache=TRUE}
-```
+
 
 ##Algorithm and Parameters
 As the goal is to predict the classe-variable from the twenty observations in the validation set correctly, we need a certain accuracy to be sure that the prediction will be most probably correct. We set the benchmark to 90%-99% of correct prediction. As the probabilty $p$ of a correct prediction of all of the independent observations from the validation set is calculated $p^{20}$, the necessary accuracy can be calculated as $accuracy = p^\frac{1}{20}$.
 
 In the following table you will find the needed accuracy for different prediction-probabilties:
   
-```{r Prediction Probability, echo=FALSE, cache=TRUE}
-```
+
+ p (20 out of 20)   accuracy needed
+-----------------  ----------------
+             0.90            0.9947
+             0.95            0.9974
+             0.99            0.9995
   
 Because a very high accuracy is needed, the Random Forest algorithm has been chosen, because it is beside the boosting algorithm one of the top performing algorithms regarding accuracy and is protected from overfitting, if a large number of trees are build for the forest. As resampling-method the k-fold-5 cross-validation has been chosen, because it is computational not so expensive and the disadvantages regarding high bias and variance are negligible, if the training dataset is quite large. We limit the amount of trees generated by the random forest algorithm at 200 to make the calcualtion not to expensive. Later on we will discover, whether this limit was appropriate to archive the needed accuracy or not.
   
 Before applying the random forest algorithm with k-fold-5 cross-validation, we split the downloaded training-data into a training-set (traindat) and testing-set (testdat), where the training set consists of 80% and the testing set of 20% of the original data. We keep a relatively high amount of data in the training set to support model accuracy. Then we run the calculation for building the model.
   
-```{r Data Split, echo=FALSE, cache=TRUE}
+
+  
+
+```
+## Calculating model with random forest algorithm took: 1.8956 mins
+```
+
+```
+## Random Forest 
+## 
+## 15699 samples
+##    56 predictor
+##     5 classes: 'A', 'B', 'C', 'D', 'E' 
+## 
+## No pre-processing
+## Resampling: Cross-Validated (5 fold) 
+## Summary of sample sizes: 12559, 12560, 12560, 12557, 12560 
+## Resampling results across tuning parameters:
+## 
+##   mtry  Accuracy   Kappa      Accuracy SD   Kappa SD    
+##    2    0.9957321  0.9946012  0.0007678613  0.0009714036
+##   31    0.9991720  0.9989527  0.0003628912  0.0004589830
+##   60    0.9978980  0.9973413  0.0004825319  0.0006103467
+## 
+## Accuracy was used to select the optimal model using  the largest value.
+## The final value used for the model was mtry = 31.
 ```
   
-```{r Random Forest, echo=FALSE, cache=TRUE}
-```
-  
-As we can see, caret optimized the result by accuracy and selected a random sample of `r fit$bestTune[1,1]` variables (mtry) as split candidates out of `r ncol(traindat)-1` predictors for each split. The train function automatically calculates some promising values for mtry and applies them to calculate the model. The best of the parameters is chosen at the end.  
+As we can see, caret optimized the result by accuracy and selected a random sample of 31 variables (mtry) as split candidates out of 56 predictors for each split. The train function automatically calculates some promising values for mtry and applies them to calculate the model. The best of the parameters is chosen at the end.  
   
 ###Evaluation
 In the following we will calculate the In-Sample-Error and the Out-of-Sample-Error to get an idea how well the calculated model will most probably work on unknown data like the validation set. In the first step the In-Sample-Error is calculated by applying the calculated model on the splitted training data itself. If we receive good result, we apply the model to the test data to get the Out-of-Sample-Error. From this we can calculate the probabilty to achieve a sufficient result in predicting the `classe`-variable for the 20 observations from the validation set given by Coursera.
@@ -80,38 +105,102 @@ In the following we will calculate the In-Sample-Error and the Out-of-Sample-Err
 ####In-Sample-Error  
 We apply the calculated model to the training data and calculate the confusion matrix in order to consider the corresponding In-Sample-Error.  
   
-```{r Confusion Matrix, echo=FALSE, cache=TRUE}
+
+```
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 4464    0    0    0    0
+##          B    0 3038    0    0    0
+##          C    0    0 2738    0    0
+##          D    0    0    0 2573    0
+##          E    0    0    0    0 2886
+## 
+## Overall Statistics
+##                                      
+##                Accuracy : 1          
+##                  95% CI : (0.9998, 1)
+##     No Information Rate : 0.2843     
+##     P-Value [Acc > NIR] : < 2.2e-16  
+##                                      
+##                   Kappa : 1          
+##  Mcnemar's Test P-Value : NA         
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Specificity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Pos Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Neg Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Prevalence             0.2843   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2843   0.1935   0.1744   0.1639   0.1838
+## Detection Prevalence   0.2843   0.1935   0.1744   0.1639   0.1838
+## Balanced Accuracy      1.0000   1.0000   1.0000   1.0000   1.0000
 ```
 
-As we can see, the result is really perfect. We received an In-Sample-Error of `r paste0(round((1-cmtrain$overall[1])*100,4), "%")`, that means an accuracy of `r cmtrain$overall[1]`.  As this is the best possible result we can continue to calculate the Out-of-Sample-Error.  
+As we can see, the result is really perfect. We received an In-Sample-Error of 0%, that means an accuracy of 1.  As this is the best possible result we can continue to calculate the Out-of-Sample-Error.  
   
 ####Out-of-Sample-Error  
 To evaluate how big the Out-of-Sample-Error is, we apply the predicted model to the splitted testing-set (20% of the original data).  
 
-```{r Random Forest Out-Of-Sample-Error, echo=FALSE, cache=TRUE}
+
+```
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1116    0    0    0    0
+##          B    0  759    1    0    0
+##          C    0    0  683    0    0
+##          D    0    0    0  643    1
+##          E    0    0    0    0  720
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9995          
+##                  95% CI : (0.9982, 0.9999)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc > NIR] : < 2.2e-16       
+##                                           
+##                   Kappa : 0.9994          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            1.0000   1.0000   0.9985   1.0000   0.9986
+## Specificity            1.0000   0.9997   1.0000   0.9997   1.0000
+## Pos Pred Value         1.0000   0.9987   1.0000   0.9984   1.0000
+## Neg Pred Value         1.0000   1.0000   0.9997   1.0000   0.9997
+## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2845   0.1935   0.1741   0.1639   0.1835
+## Detection Prevalence   0.2845   0.1937   0.1741   0.1642   0.1835
+## Balanced Accuracy      1.0000   0.9998   0.9993   0.9998   0.9993
 ```
   
-Also the Out-of-Sample-Error is excellent. We received an accuracy of `r round(cmtest$overall[1],4)` which results in an Out-of-Sample-Error of `r paste0(round((1-cmtest$overall[1])*100,4), "%")`.  
+Also the Out-of-Sample-Error is excellent. We received an accuracy of 0.9995 which results in an Out-of-Sample-Error of 0.051%.  
   
 With this really good result we can try to predict the `classe`-variable for the validation set without the need of any changes regarding the amount of predictor variables, the chosen algorithm, the used parameters or the resampling method. But before we do that, we take a look at the variable importance and the influence of the amount of generated trees on the given result.  
   
 In the following plot the top-20 variables according to the mean decrease in the Gini-index are shown and expressed relative to the maximum.  It is interesting to see, that some of the variables under discussion for removing from the training set like `num_window` and `raw_timestamp_part_1` turning out to be the most important variables to predict the `classe`-variable.
   
-```{r Variable Importance Plot, echo=FALSE, cache=TRUE}
-```
+![](index_files/figure-html/Variable Importance Plot-1.png) 
   
 It is also interesting to see, how the class error is going down, if the amount of trees increases. But it als turned out, that it is sufficient to calculate only e.g. 50 trees to archive a satisfactory accuracy respectively error-rate. 
 
-```{r Plot Class Error by trees, echo=FALSE, cache=TRUE}
-```
+![](index_files/figure-html/Plot Class Error by trees-1.png) 
   
 ###Result
 Now we apply the calcualted model to the validation set containing 20 unclassified observations and obtain following result for predicting the `classe`-variable. This result was submitted in the Course Project Prediction Quiz and received 20/20 points.
 
-```{r Predict Validation Set, echo=FALSE, cache=TRUE}
-```
+
+1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17   18   19   20 
+---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---  ---
+B    A    B    A    A    E    D    B    A    A    B    C    B    A    E    E    A    B    B    B  
   
-With the random forest model using the resampling method k-fold cross-validation with five folds, `r fit$bestTune[1,1]` randomly selected predictors (mtry) and 200 calculated trees we achieved a model with an Out-of-Sample-Error rate of `r paste0(round((1-cmtest$overall[1])*100,4), "%")`. So this model worked quite good and we achieved a probability of `r paste(round(sqrt(cmtest$overall[1])*100,2),"%")` to predict all 20 observations in the validation set correctly.
+With the random forest model using the resampling method k-fold cross-validation with five folds, 31 randomly selected predictors (mtry) and 200 calculated trees we achieved a model with an Out-of-Sample-Error rate of 0.051%. So this model worked quite good and we achieved a probability of 99.97 % to predict all 20 observations in the validation set correctly.
 
 ##Appendix
 ###Bibliography
@@ -122,7 +211,8 @@ For this analysis the R version 3.2.1 was used. All calculations were done with 
 
 ###Code
 ####1) Load libraries and initialize core-cluster for parallel computing
-```{r load libraries and default settings, echo=TRUE, eval=FALSE}
+
+```r
 #Load necessary library
 library(knitr)
 library(caret)
@@ -134,7 +224,8 @@ registerDoParallel(cluster)
 &nbsp;
 
 ####2) Load datasets
-```{r load datasets, echo=TRUE, eval=FALSE}
+
+```r
 #download work only for windows, computers with other OS may use method="curl" or other
 
 myfile1 <- "pml-training.csv"
@@ -153,13 +244,15 @@ validationset <- read.csv("pml-testing.csv", stringsAsFactors = FALSE, na.string
 &nbsp;
 
 ####3) Show first rows of the training dataset
-```{r Show dataset, echo=TRUE, eval=FALSE}
+
+```r
 kable(head(trainingset[1:7]))
 ```
 &nbsp;
 
 ####4) Show necessary accuracy
-```{r Prediction Probability, echo=TRUE, eval=FALSE}
+
+```r
 accuracy <- vector(mode = "numeric", length = 3)
 predprob <- c(0.90,0.95,0.99)
 
@@ -172,7 +265,8 @@ kable(data.frame(predprob=predprob, accuracy=accuracy), row.names = FALSE, col.n
 &nbsp;
   
 ####5) Delete unnecessary columns
-```{r Data cleaning, echo=TRUE, eval=FALSE}
+
+```r
 unusablecols <- names(trainingset)[c(1,5:6)] #define columns "X", "cvtd_timestamp" and "new_window" for elimination
 nacols <- names(trainingset)[colSums(is.na(trainingset))>0] #define all columns containing NA-values for elimination
 cols <- names(trainingset)[!names(trainingset) %in% c(unusablecols, nacols)] #eliminate all previousliy defined columns
@@ -182,7 +276,8 @@ trainingset_cleaned$classe <- as.factor(trainingset_cleaned$classe)
 &nbsp;
   
 ####6) Split trainingset 80/20 into a smaller trainingset and a new testset
-```{r Data Split, echo=TRUE, eval=FALSE}
+
+```r
 set.seed(123456) #Set seed for reproducibility
 t <- createDataPartition(y=trainingset_cleaned$classe, p=0.8, list=FALSE) #Split trainingset 80/20
 traindat <- trainingset_cleaned[t,]
@@ -191,7 +286,8 @@ testdat <- trainingset_cleaned[-t,]
 &nbsp;
   
 ####7) Build model with random forest algorithm
-```{r Random Forest, echo=TRUE, eval=FALSE}
+
+```r
 startTime <- Sys.time()
 tContr <- trainControl(method="cv", number=5, allowParallel=TRUE)
 fit <- train(classe ~., data=traindat, method="rf", trControl=tContr, proximity=FALSE, ntree=200)
@@ -206,33 +302,38 @@ stopCluster(cluster)
 &nbsp;
 
 ####8) Show confusion matrix for training set
-```{r Confusion Matrix, echo=TRUE, eval=FALSE}
+
+```r
 cmtrain <- confusionMatrix(predict(fit,traindat),traindat$classe)
 cmtrain
 ```
 &nbsp;
   
 ####9) Show confusion matrix for test set
-```{r Random Forest Out-Of-Sample-Error, echo=TRUE, eval=FALSE}
+
+```r
 cmtest <- confusionMatrix(predict(fit,testdat),testdat$classe)
 cmtest
 ```
 &nbsp;
 
 ####10) Variable Importance plot
-```{r Variable Importance Plot, echo=TRUE, eval=FALSE}
+
+```r
 plot(varImp(fit), top = 20, main="Variable Importance Plot")
 ```
 &nbsp;
 
 ####11) Class Error by trees plot
-```{r Plot Class Error by trees, echo=TRUE, eval=FALSE}
+
+```r
 plot(fit$finalModel, main = "Class Error by amount of trees")
 ```
 &nbsp;
   
 ####12) Apply model to vaildation set and show results
-```{r Predict Validation Set, echo=TRUE, eval=FALSE}
+
+```r
 predvalidation <- predict(fit,validationset)
 predanswers <- rbind(data.frame(), as.character(predvalidation))
 names(predanswers) <- 1:length(predvalidation)
